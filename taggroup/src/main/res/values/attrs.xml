@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TagGroup">
+        <attr name="inputHint" format="string" />
+        <attr name="borderColor" format="color" />
+        <attr name="textColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+        <attr name="inputHintColor" format="color" />
+        <attr name="inputTextColor" format="color" />
+        <attr name="checkedBorderColor" format="color" />
+        <attr name="checkedTextColor" format="color" />
+        <attr name="checkedBackgroundColor" format="color" />
+        <attr name="pressedBackgroundColor" format="color" />
+        <attr name="borderStrokeWidth" format="dimension" />
+        <attr name="textSize" format="dimension" />
+        <attr name="horizontalSpacing" format="dimension" />
+        <attr name="verticalSpacing" format="dimension" />
+        <attr name="horizontalPadding" format="dimension" />
+        <attr name="verticalPadding" format="dimension" />
+    </declare-styleable>
+    <declare-styleable name="TagScrollView">
+        <attr name="maxLines" format="integer"></attr>
+    </declare-styleable>
+</resources>

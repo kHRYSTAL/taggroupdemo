@@ -1,17 +1,38 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="me.khrystal.taggroupdemo.MainActivity">
+    android:orientation="vertical">
+    <me.khrystal.view.TagScrollView
+        android:background="#ff0"
+        android:id="@+id/tag_sv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <me.khrystal.view.TagGroup
+            android:id="@+id/tag_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:inputHint="添加标签"
+            app:borderColor="#49c120"
+            app:textColor="#49c120"
+            app:backgroundColor="#ffffff"
+            app:inputHintColor="#80000000"
+            app:inputTextColor="#DE000000"
+            app:checkedBorderColor="#49c120"
+            app:checkedTextColor="#EDEDED"
+            app:checkedBackgroundColor="#49c120"
+            app:pressedBackgroundColor="#ededed"
+            app:borderStrokeWidth="0.5dp"
+            app:textSize="18sp"
+            app:horizontalSpacing="8dp"
+            app:verticalSpacing="4dp"
+            app:horizontalPadding="12dp"
+            app:verticalPadding="3dp"
+            >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-</RelativeLayout>
+        </me.khrystal.view.TagGroup>
+    </me.khrystal.view.TagScrollView>
+
+</LinearLayout>
