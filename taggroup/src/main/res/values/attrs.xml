@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="TagGroup">
+        <attr name="maxLines" format="integer"></attr>
         <attr name="inputHint" format="string" />
         <attr name="borderColor" format="color" />
         <attr name="textColor" format="color" />
@@ -17,8 +18,5 @@
         <attr name="verticalSpacing" format="dimension" />
         <attr name="horizontalPadding" format="dimension" />
         <attr name="verticalPadding" format="dimension" />
-    </declare-styleable>
-    <declare-styleable name="TagScrollView">
-        <attr name="maxLines" format="integer"></attr>
     </declare-styleable>
 </resources>

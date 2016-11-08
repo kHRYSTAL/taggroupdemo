@@ -22,17 +22,8 @@ public class MainActivity extends AppCompatActivity implements TagGroup.OnTagCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTagGroup = (TagGroup) findViewById(R.id.tag_group);
-        mTagScrollView = (TagScrollView)findViewById(R.id.tag_sv);
-
-        mTagGroup.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                float[] rowHeightAndSpacing = mTagGroup.getRowHeightAndSpacing();
-                Log.d("Main", rowHeightAndSpacing[0] + ", " + rowHeightAndSpacing[1]);
-                mTagScrollView.setMaxHeight((int)( 3 * rowHeightAndSpacing[0] + 4 * rowHeightAndSpacing[1]));
-            }
-        });
         mTagGroup.setOnTagClickListener(this);
+        mTagScrollView = (TagScrollView)findViewById(R.id.tag_sv);
         List<String> list = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             list.add(""+ i);

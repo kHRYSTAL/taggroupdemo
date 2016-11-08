@@ -2,12 +2,8 @@ package me.khrystal.view;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 
 /**
@@ -18,42 +14,44 @@ import android.widget.ScrollView;
  * email: 723526676@qq.com
  */
 
-public class TagScrollView extends ScrollView{
-    public static int WITHOUT_MAX_HEIGHT_VALUE = 0;
+public class TagScrollView extends ScrollView {
+    public static int WITHOUT_MAX_LINES = 0;
 
-    private int maxHeight = WITHOUT_MAX_HEIGHT_VALUE;
+    private int maxLines = WITHOUT_MAX_LINES;
+
+    private int childHeight;
+
+    private int childVerticalSpacing;
 
     public TagScrollView(Context context) {
-        super(context);
+        this(context, null);
     }
 
     public TagScrollView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+        super(context, attrs, 0);
     }
 
     public TagScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initAttrs(attrs);
+
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public TagScrollView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        initAttrs(attrs);
     }
 
-    private void initAttrs(AttributeSet attrs) {
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.TagScrollView);
-        ta.recycle();
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         try {
             int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-            if (maxHeight != WITHOUT_MAX_HEIGHT_VALUE
-                    && heightSize > maxHeight) {
-                heightSize = maxHeight;
+            if (maxLines != WITHOUT_MAX_LINES ) {
+                heightSize = maxLines * childHeight + (maxLines + 1) * childVerticalSpacing ;
             }
             heightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.AT_MOST);
             getLayoutParams().height = heightSize;
@@ -63,7 +61,12 @@ public class TagScrollView extends ScrollView{
         }
     }
 
-    public void setMaxHeight(int maxHeight) {
-        this.maxHeight = maxHeight;
+    public void setMaxLines(int maxLines) {
+        this.maxLines = maxLines;
+    }
+
+    public void setChildHeightAndSpacing(int childHeight, int childVerticalSpacing) {
+        this.childHeight = childHeight;
+        this.childVerticalSpacing = childVerticalSpacing;
     }
 }

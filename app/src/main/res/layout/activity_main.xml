@@ -4,8 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:orientation="vertical">
     <me.khrystal.view.TagScrollView
+        android:padding="20dp"
         android:background="#ff0"
         android:id="@+id/tag_sv"
         android:layout_width="match_parent"
@@ -14,6 +17,7 @@
             android:id="@+id/tag_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:maxLines="3"
             app:inputHint="添加标签"
             app:borderColor="#49c120"
             app:textColor="#49c120"

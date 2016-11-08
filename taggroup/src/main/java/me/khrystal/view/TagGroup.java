@@ -1,5 +1,6 @@
 package me.khrystal.view;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -8,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.Editable;
@@ -22,6 +24,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
@@ -110,6 +113,8 @@ public class TagGroup extends ViewGroup {
     /** Listener used to dispatch tag click event. */
     private OnTagClickListener mOnTagClickListener;
 
+    private int maxLines;
+
     /** Listener used to handle tag click event. */
     private InternalTagClickListener mInternalTagClickListener = new InternalTagClickListener();
 
@@ -149,6 +154,7 @@ public class TagGroup extends ViewGroup {
             verticalSpacing = (int) a.getDimension(R.styleable.TagGroup_verticalSpacing, default_vertical_spacing);
             horizontalPadding = (int) a.getDimension(R.styleable.TagGroup_horizontalPadding, default_horizontal_padding);
             verticalPadding = (int) a.getDimension(R.styleable.TagGroup_verticalPadding, default_vertical_padding);
+            maxLines = a.getInteger(R.styleable.TagGroup_maxLines, 0);
         } finally {
             a.recycle();
         }
@@ -163,6 +169,21 @@ public class TagGroup extends ViewGroup {
             @Override
             public void onClick(View v) {
                 submitTag();
+            }
+        });
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+            @Override
+            public void onGlobalLayout() {
+                if (getParent() instanceof TagScrollView) {
+                    TagScrollView scrollView = (TagScrollView) getParent();
+                    float[] rowHeightAndSpacing = getRowHeightAndSpacing();
+                    scrollView.setChildHeightAndSpacing((int) rowHeightAndSpacing[0], (int) rowHeightAndSpacing[1]);
+                    if (maxLines != 0)
+                        scrollView.setMaxLines(maxLines);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+                        getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
             }
         });
     }
