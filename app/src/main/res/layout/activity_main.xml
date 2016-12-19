@@ -18,7 +18,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:maxLines="3"
-            app:maxCount="13"
             app:inputHint="添加标签"
             app:borderColor="#49c120"
             app:textColor="#49c120"

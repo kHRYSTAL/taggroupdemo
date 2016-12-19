@@ -1,6 +1,5 @@
 package me.khrystal.view;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -867,28 +866,28 @@ public class TagGroup extends ViewGroup {
                 return super.onTouchEvent(event);
             }
 
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN: {
-                    getDrawingRect(mOutRect);
-                    isPressed = true;
-                    invalidatePaint();
-                    break;
-                }
-                case MotionEvent.ACTION_MOVE: {
-                    if (!mOutRect.contains((int) event.getX(), (int) event.getY())) {
-                        isPressed = false;
-                        invalidatePaint();
-//                        postInvalidate();
-                    }
-                    break;
-                }
-                case MotionEvent.ACTION_UP: {
-                    isPressed = false;
-                    invalidatePaint();
-                    postInvalidate();
-                    break;
-                }
-            }
+//            switch (event.getAction()) {
+//                case MotionEvent.ACTION_DOWN: {
+//                    getDrawingRect(mOutRect);
+//                    isPressed = true;
+//                    invalidatePaint();
+//                    break;
+//                }
+//                case MotionEvent.ACTION_MOVE: {
+//                    if (!mOutRect.contains((int) event.getX(), (int) event.getY())) {
+//                        isPressed = false;
+//                        invalidatePaint();
+////                        postInvalidate();
+//                    }
+//                    break;
+//                }
+//                case MotionEvent.ACTION_UP: {
+//                    isPressed = false;
+//                    invalidatePaint();
+//                    postInvalidate();
+//                    break;
+//                }
+//            }
             return super.onTouchEvent(event);
         }
 
