@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="TagGroup">
         <attr name="maxLines" format="integer"></attr>
+        <attr name="maxCount" format="integer"></attr>
         <attr name="inputHint" format="string" />
         <attr name="borderColor" format="color" />
         <attr name="textColor" format="color" />

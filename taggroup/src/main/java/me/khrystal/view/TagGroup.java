@@ -1,6 +1,7 @@
 package me.khrystal.view;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -28,6 +29,8 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -58,6 +61,7 @@ public class TagGroup extends ViewGroup {
     private final float default_vertical_spacing;
     private final float default_horizontal_padding;
     private final float default_vertical_padding;
+    private final int default_max_count;
 
     /** The text to be displayed when the text of the INPUT tag is empty. */
     private CharSequence inputHint;
@@ -115,6 +119,8 @@ public class TagGroup extends ViewGroup {
 
     private int maxLines;
 
+    private int maxCount;
+
     /** Listener used to handle tag click event. */
     private InternalTagClickListener mInternalTagClickListener = new InternalTagClickListener();
 
@@ -134,6 +140,7 @@ public class TagGroup extends ViewGroup {
         default_vertical_spacing = dp2px(4.0f);
         default_horizontal_padding = dp2px(12.0f);
         default_vertical_padding = dp2px(3.0f);
+        default_max_count = -1;
 
         // Load styled attributes.
         final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagGroup, defStyleAttr, defStyleAttr);
@@ -155,6 +162,8 @@ public class TagGroup extends ViewGroup {
             horizontalPadding = (int) a.getDimension(R.styleable.TagGroup_horizontalPadding, default_horizontal_padding);
             verticalPadding = (int) a.getDimension(R.styleable.TagGroup_verticalPadding, default_vertical_padding);
             maxLines = a.getInteger(R.styleable.TagGroup_maxLines, 0);
+            maxCount = a.getInteger(R.styleable.TagGroup_maxCount, default_max_count);
+
         } finally {
             a.recycle();
         }
@@ -168,9 +177,15 @@ public class TagGroup extends ViewGroup {
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (getParent() instanceof TagScrollView) {
+                    TagScrollView scrollView = (TagScrollView) getParent();
+                    scrollView.setFocusable(true);
+                }
                 submitTag();
             }
         });
+
+
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
             @Override
@@ -186,6 +201,21 @@ public class TagGroup extends ViewGroup {
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (getParent() instanceof TagScrollView)
+            return false;
+
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (getParent() instanceof  TagScrollView)
+            return false;
+        return super.onInterceptTouchEvent(ev);
     }
 
     /**
@@ -262,6 +292,19 @@ public class TagGroup extends ViewGroup {
     }
 
     @Override
+    public void removeView(View view) {
+        super.removeView(view);
+        if (!checkShowInputTag()) {
+            if (getInputTag() != null) {
+                removeViewAt(getChildCount() - 1);
+            }
+        } else {
+            if (getInputTag() == null)
+                appendInputTag();
+        }
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         final int parentLeft = getPaddingLeft();
         final int parentRight = r - l - getPaddingRight();
@@ -327,6 +370,7 @@ public class TagGroup extends ViewGroup {
     }
 
     protected void appendInputTag(String tag) {
+
         final TagView previousInputTag = getInputTag();
         if (previousInputTag != null) {
             throw new IllegalStateException("Already has a INPUT tag in group!");
@@ -334,7 +378,31 @@ public class TagGroup extends ViewGroup {
 
         final TagView newInputTag = new TagView(getContext(), TagView.STATE_INPUT, tag);
         newInputTag.setOnClickListener(mInternalTagClickListener);
-        addView(newInputTag); // 添加view 自动重绘
+        if (checkShowInputTag())
+            addView(newInputTag); // 添加view 自动重绘
+
+        // scrollview 自动滚动到底部
+        if (getParent() instanceof TagScrollView) {
+            TagScrollView scrollView = (TagScrollView) getParent();
+            if (mScrollBottomRunnable != null)
+                scrollView.post(mScrollBottomRunnable);
+        }
+    }
+
+    private boolean checkShowInputTag() {
+        if (maxCount != -1) {
+            if (getChildCount() > maxCount) {
+                // TODO: 16/12/19 隐藏软键盘
+                Activity activity = (Activity) getContext();
+                ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE))
+                        .hideSoftInputFromWindow(getLastNormalTagView().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                return false;
+            } else {
+                return true;
+            }
+        } else
+            return true;
+
     }
 
     public List<String> getTags() {
@@ -412,7 +480,7 @@ public class TagGroup extends ViewGroup {
     }
 
     protected int getCheckedTagIndex() {
-        final int count = getChildCount() - 1;
+        final int count = getChildCount();
         for (int i = 0; i < count; i++) {
             final TagView tag = getTagAt(i);
             if (tag.isChecked) {
@@ -634,13 +702,20 @@ public class TagGroup extends ViewGroup {
                 setOnKeyListener(new OnKeyListener() {
                     @Override
                     public boolean onKey(View v, int keyCode, KeyEvent event) {
-                        if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN){
+                        if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                            if (!TextUtils.isEmpty(getText().toString()))
+                                return false;
                             TagView lastNormalTagView = getLastNormalTagView();
                             if (lastNormalTagView != null) {
                                 // 点击删除键 如果没有选中 则对标签进行选中
                                 // 如果已经选中 则直接删除
                                 if (lastNormalTagView.isChecked) {
                                     removeView(lastNormalTagView);
+                                    // 滚动到底部逻辑
+                                    if (getParent() instanceof TagScrollView) {
+                                        TagScrollView scrollView = (TagScrollView) getParent();
+                                        scrollView.post(mScrollBottomRunnable);
+                                    }
                                     if (mOnTagChangeListener != null) {
                                         mOnTagChangeListener.onDelete(TagGroup.this, lastNormalTagView.getText().toString());
                                     }
@@ -657,6 +732,20 @@ public class TagGroup extends ViewGroup {
                         return false;
                     }
                 });
+
+//                /**
+//                 * 判断edittext是否失去焦点 如果失去焦点 则把输入框改变成标签
+//                 */
+//                setOnFocusChangeListener(new OnFocusChangeListener() {
+//                    @Override
+//                    public void onFocusChange(View v, boolean hasFocus) {
+//                        if (!hasFocus) {
+//                            if (isInputAvailable()) {
+//                                endInput();
+//                            }
+//                        }
+//                    }
+//                });
 
                 addTextChangedListener(new TextWatcher() {
                     @Override
@@ -783,7 +872,6 @@ public class TagGroup extends ViewGroup {
                     getDrawingRect(mOutRect);
                     isPressed = true;
                     invalidatePaint();
-//                    postInvalidate();
                     break;
                 }
                 case MotionEvent.ACTION_MOVE: {
@@ -830,4 +918,14 @@ public class TagGroup extends ViewGroup {
             }
         }
     }
+
+    private  Runnable mScrollBottomRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (getParent() instanceof TagScrollView) {
+                TagScrollView scrollView = (TagScrollView) getParent();
+                scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+            }
+        }
+    };
 }

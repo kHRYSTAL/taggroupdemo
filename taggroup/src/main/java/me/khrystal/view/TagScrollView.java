@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.widget.ScrollView;
 
 /**
@@ -51,7 +52,7 @@ public class TagScrollView extends ScrollView {
         try {
             int heightSize = MeasureSpec.getSize(heightMeasureSpec);
             if (maxLines != WITHOUT_MAX_LINES ) {
-                heightSize = maxLines * childHeight + (maxLines + 1) * childVerticalSpacing ;
+                heightSize = (maxLines + 1) * childHeight + (maxLines + 1) * childVerticalSpacing ;
             }
             heightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.AT_MOST);
             getLayoutParams().height = heightSize;
@@ -69,4 +70,5 @@ public class TagScrollView extends ScrollView {
         this.childHeight = childHeight;
         this.childVerticalSpacing = childVerticalSpacing;
     }
+
 }
