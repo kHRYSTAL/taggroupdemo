@@ -1,23 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 标签编辑框 -->
     <declare-styleable name="TagGroup">
-        <attr name="maxLines" format="integer"></attr>
-        <attr name="maxCount" format="integer"></attr>
-        <attr name="inputHint" format="string" />
-        <attr name="borderColor" format="color" />
-        <attr name="textColor" format="color" />
-        <attr name="backgroundColor" format="color" />
-        <attr name="inputHintColor" format="color" />
-        <attr name="inputTextColor" format="color" />
-        <attr name="checkedBorderColor" format="color" />
-        <attr name="checkedTextColor" format="color" />
-        <attr name="checkedBackgroundColor" format="color" />
-        <attr name="pressedBackgroundColor" format="color" />
-        <attr name="borderStrokeWidth" format="dimension" />
-        <attr name="textSize" format="dimension" />
-        <attr name="horizontalSpacing" format="dimension" />
-        <attr name="verticalSpacing" format="dimension" />
-        <attr name="horizontalPadding" format="dimension" />
-        <attr name="verticalPadding" format="dimension" />
+        <!-- 最大行数 -->
+        <attr name="tg_maxLines" format="integer"></attr>
+        <!-- 标签 最大数量 -->
+        <attr name="tg_maxCount" format="integer"></attr>
+        <!-- hint 文字 -->
+        <attr name="tg_inputHint" format="string" />
+        <!-- 标签内文字最大数量 -->
+        <attr name="tg_maxEms" format="integer"/>
+        <!-- 默认边距颜色 -->
+        <attr name="tg_borderColor" format="color" />
+        <!-- 文字颜色 -->
+        <attr name="tg_textColor" format="color" />
+        <!-- 背景色 -->
+        <attr name="tg_backgroundColor" format="color" />
+        <!-- hint 文字颜色 -->
+        <attr name="tg_inputHintColor" format="color" />
+        <!-- 输入框文字颜色 -->
+        <attr name="tg_inputTextColor" format="color" />
+        <!-- 选中边距颜色 -->
+        <attr name="tg_checkedBorderColor" format="color" />
+        <!-- 选中文字颜色 -->
+        <attr name="tg_checkedTextColor" format="color" />
+        <attr name="tg_checkedBackgroundColor" format="color" />
+        <attr name="tg_pressedBackgroundColor" format="color" />
+        <attr name="tg_borderStrokeWidth" format="dimension" />
+        <attr name="tg_textSize" format="dimension" />
+        <attr name="tg_horizontalSpacing" format="dimension" />
+        <attr name="tg_verticalSpacing" format="dimension" />
+        <attr name="tg_horizontalPadding" format="dimension" />
+        <attr name="tg_verticalPadding" format="dimension" />
     </declare-styleable>
 </resources>

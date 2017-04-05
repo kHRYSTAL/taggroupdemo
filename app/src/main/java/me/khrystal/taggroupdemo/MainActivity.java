@@ -9,12 +9,13 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.khrystal.view.OnTagClickListener;
 import me.khrystal.view.TagGroup;
 import me.khrystal.view.TagScrollView;
 
-public class MainActivity extends AppCompatActivity implements TagGroup.OnTagClickListener {
+public class MainActivity extends AppCompatActivity implements OnTagClickListener<TagBean> {
 
-    private TagGroup mTagGroup;
+    private TagGroup<TagBean> mTagGroup;
     private TagScrollView mTagScrollView;
 
     @Override
@@ -22,23 +23,27 @@ public class MainActivity extends AppCompatActivity implements TagGroup.OnTagCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTagGroup = (TagGroup) findViewById(R.id.tag_group);
+        mTagGroup.setClazz(TagBean.class);
         mTagGroup.setOnTagClickListener(this);
         mTagScrollView = (TagScrollView)findViewById(R.id.tag_sv);
-        List<String> list = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            list.add(""+ i);
+        List<TagBean> list = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            TagBean bean = new TagBean();
+            bean.setId("" + i);
+            bean.setName("bean" + i);
+            list.add(bean);
         }
         mTagGroup.setTags(list);
-
     }
 
+
     @Override
-    public void onTagClick(TagGroup.TagView tagView, String tag, boolean isChecked) {
+    public void onTagClick(TagGroup.TagView tagView, TagBean tag, boolean isChecked) {
         if (isChecked) {
             mTagGroup.removeView(tagView);
-            Toast.makeText(MainActivity.this, "remove:" + tag, Toast.LENGTH_SHORT).show();;
+            Toast.makeText(MainActivity.this, "remove:" + tag.getName(), Toast.LENGTH_SHORT).show();;
         } else {
-            Toast.makeText(MainActivity.this, "click:" + tag, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "click:" + tag.getName(), Toast.LENGTH_SHORT).show();
         }
     }
 }

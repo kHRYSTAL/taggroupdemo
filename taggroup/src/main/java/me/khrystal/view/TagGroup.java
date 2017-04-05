@@ -1,17 +1,13 @@
 package me.khrystal.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Build;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -28,10 +24,13 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +42,32 @@ import java.util.List;
  * email: 723526676@qq.com
  */
 
-public class TagGroup extends ViewGroup {
+public class TagGroup<T extends TagGroup.TagAble> extends ViewGroup {
+
+    private static final String TAG = TagGroup.class.getSimpleName();
+
+    public interface TagAble extends Serializable {
+        public void setId(String id);
+        public void setName(String name);
+        public String getId();
+        public String getName();
+    }
+
+    private Class<T> clazz;
+
+    public void setClazz(Class<T> clazz) {
+        this.clazz = clazz;
+    }
+
+    private T getInstanceOfT()
+            throws InstantiationException, IllegalAccessException {
+        return clazz.newInstance();
+    }
+
+    @SuppressWarnings("unchecked")
+    private T[] getInstanceArrayOfT(int s) {
+        return (T[]) Array.newInstance(clazz, s);
+    }
 
     private final int default_border_color = Color.rgb(0x49, 0xC1, 0x20);
     private final int default_text_color = Color.rgb(0x49, 0xC1, 0x20);
@@ -61,6 +85,7 @@ public class TagGroup extends ViewGroup {
     private final float default_horizontal_padding;
     private final float default_vertical_padding;
     private final int default_max_count;
+    private final int default_max_ems;
 
     /** The text to be displayed when the text of the INPUT tag is empty. */
     private CharSequence inputHint;
@@ -120,6 +145,8 @@ public class TagGroup extends ViewGroup {
 
     private int maxCount;
 
+    private int maxEms;
+
     /** Listener used to handle tag click event. */
     private InternalTagClickListener mInternalTagClickListener = new InternalTagClickListener();
 
@@ -139,39 +166,38 @@ public class TagGroup extends ViewGroup {
         default_vertical_spacing = dp2px(4.0f);
         default_horizontal_padding = dp2px(12.0f);
         default_vertical_padding = dp2px(3.0f);
+        default_max_ems = 10;
         default_max_count = -1;
 
         // Load styled attributes.
         final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagGroup, defStyleAttr, defStyleAttr);
         try {
-            inputHint = a.getText(R.styleable.TagGroup_inputHint);
-            borderColor = a.getColor(R.styleable.TagGroup_borderColor, default_border_color);
-            textColor = a.getColor(R.styleable.TagGroup_textColor, default_text_color);
-            backgroundColor = a.getColor(R.styleable.TagGroup_backgroundColor, default_background_color);
-            inputHintColor = a.getColor(R.styleable.TagGroup_inputHintColor, default_input_hint_color);
-            inputTextColor = a.getColor(R.styleable.TagGroup_inputTextColor, default_input_text_color);
-            checkedBorderColor = a.getColor(R.styleable.TagGroup_checkedBorderColor, default_checked_border_color);
-            checkedTextColor = a.getColor(R.styleable.TagGroup_checkedTextColor, default_checked_text_color);
-            checkedBackgroundColor = a.getColor(R.styleable.TagGroup_checkedBackgroundColor, default_checked_background_color);
-            pressedBackgroundColor = a.getColor(R.styleable.TagGroup_pressedBackgroundColor, default_pressed_background_color);
-            borderStrokeWidth = a.getDimension(R.styleable.TagGroup_borderStrokeWidth, default_border_stroke_width);
-            textSize = a.getDimension(R.styleable.TagGroup_textSize, default_text_size);
-            horizontalSpacing = (int) a.getDimension(R.styleable.TagGroup_horizontalSpacing, default_horizontal_spacing);
-            verticalSpacing = (int) a.getDimension(R.styleable.TagGroup_verticalSpacing, default_vertical_spacing);
-            horizontalPadding = (int) a.getDimension(R.styleable.TagGroup_horizontalPadding, default_horizontal_padding);
-            verticalPadding = (int) a.getDimension(R.styleable.TagGroup_verticalPadding, default_vertical_padding);
-            maxLines = a.getInteger(R.styleable.TagGroup_maxLines, 0);
-            maxCount = a.getInteger(R.styleable.TagGroup_maxCount, default_max_count);
+            inputHint = a.getText(R.styleable.TagGroup_tg_inputHint);
+            borderColor = a.getColor(R.styleable.TagGroup_tg_borderColor, default_border_color);
+            textColor = a.getColor(R.styleable.TagGroup_tg_textColor, default_text_color);
+            backgroundColor = a.getColor(R.styleable.TagGroup_tg_backgroundColor, default_background_color);
+            inputHintColor = a.getColor(R.styleable.TagGroup_tg_inputHintColor, default_input_hint_color);
+            inputTextColor = a.getColor(R.styleable.TagGroup_tg_inputTextColor, default_input_text_color);
+            checkedBorderColor = a.getColor(R.styleable.TagGroup_tg_checkedBorderColor, default_checked_border_color);
+            checkedTextColor = a.getColor(R.styleable.TagGroup_tg_checkedTextColor, default_checked_text_color);
+            checkedBackgroundColor = a.getColor(R.styleable.TagGroup_tg_checkedBackgroundColor, default_checked_background_color);
+            pressedBackgroundColor = a.getColor(R.styleable.TagGroup_tg_pressedBackgroundColor, default_pressed_background_color);
+            borderStrokeWidth = a.getDimension(R.styleable.TagGroup_tg_borderStrokeWidth, default_border_stroke_width);
+            textSize = a.getDimension(R.styleable.TagGroup_tg_textSize, default_text_size);
+            horizontalSpacing = (int) a.getDimension(R.styleable.TagGroup_tg_horizontalSpacing, default_horizontal_spacing);
+            verticalSpacing = (int) a.getDimension(R.styleable.TagGroup_tg_verticalSpacing, default_vertical_spacing);
+            horizontalPadding = (int) a.getDimension(R.styleable.TagGroup_tg_horizontalPadding, default_horizontal_padding);
+            verticalPadding = (int) a.getDimension(R.styleable.TagGroup_tg_verticalPadding, default_vertical_padding);
+            maxLines = a.getInteger(R.styleable.TagGroup_tg_maxLines, 0);
+            maxCount = a.getInteger(R.styleable.TagGroup_tg_maxCount, default_max_count);
+            maxEms = a.getInt(R.styleable.TagGroup_tg_maxEms, default_max_ems);
+            maxCount--;
 
         } finally {
             a.recycle();
         }
 
         setClipToPadding(true);
-
-//      在末尾添加编辑框
-        appendInputTag();
-
 //      如果编辑框中有字 点击外部自动生成标签
         setOnClickListener(new OnClickListener() {
             @Override
@@ -183,7 +209,6 @@ public class TagGroup extends ViewGroup {
                 submitTag();
             }
         });
-
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
@@ -232,7 +257,7 @@ public class TagGroup extends ViewGroup {
 //            改变样式为普通标签
             inputTag.endInput();
             if (mOnTagChangeListener != null) {
-                mOnTagChangeListener.onAppend(TagGroup.this, inputTag.getText().toString());
+                mOnTagChangeListener.onAppend(TagGroup.this, inputTag.getTagObj());
             }
 //            再添加一个样式为编辑的标签
             appendInputTag();
@@ -242,52 +267,55 @@ public class TagGroup extends ViewGroup {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        final int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        final int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        measureChildren(widthMeasureSpec, heightMeasureSpec);
+        int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
 
+        //AT_MOST
         int width = 0;
         int height = 0;
+        int rawWidth = 0;//当前行总宽度
+        int rawHeight = 0;// 当前行高
 
-        int row = 0; // 记录行数
-        int rowWidth = 0; // 计算行宽
-        int rowMaxHeight = 0; // 计算tag的最大高度
-
-        final int count = getChildCount();
+        int count = getChildCount();
         for (int i = 0; i < count; i++) {
-            final View child = getChildAt(i);
-            final int childWidth = child.getMeasuredWidth();
-            final int childHeight = child.getMeasuredHeight();
-
-            if (child.getVisibility() != GONE) {
-                rowWidth += childWidth;
-                if (rowWidth > widthSize) {
-                    rowWidth = childWidth;
-                    height += rowMaxHeight + verticalSpacing;
-                    rowMaxHeight = childHeight;
-                    row ++;
-                } else {
-                    rowMaxHeight = Math.max(rowMaxHeight, childHeight);
+            View child = getChildAt(i);
+            if(child.getVisibility() == GONE){
+                if(i == count - 1){
+                    //最后一个child
+                    height += rawHeight;
+                    width = Math.max(width, rawWidth);
                 }
-                rowWidth += horizontalSpacing;
+                continue;
+            }
+
+            measureChild(child, widthMeasureSpec, heightMeasureSpec);
+
+            int childWidth = child.getMeasuredWidth();
+            int childHeight = child.getMeasuredHeight();
+            if(rawWidth + childWidth> widthSpecSize - getPaddingLeft() - getPaddingRight()){
+                //换行
+                width = Math.max(width, rawWidth);
+                rawWidth = childWidth;
+                height += rawHeight;
+                rawHeight = childHeight + verticalSpacing;
+            } else {
+                rawWidth += (childWidth + horizontalSpacing);
+                rawHeight = Math.max(rawHeight, childHeight);
+            }
+
+            if(i == count - 1){
+                width = Math.max(rawWidth, width);
+                height += rawHeight;
             }
         }
 
-        height += rowMaxHeight;
-        height += getPaddingTop() + getPaddingBottom();
-
-        if (row == 0) {
-            width = rowWidth;
-            width += getPaddingLeft() + getPaddingRight();
-        } else {
-            width = widthSize;
-        }
-
-        setMeasuredDimension(widthMode == MeasureSpec.EXACTLY ? widthSize : width,
-                heightMode == MeasureSpec.EXACTLY ? heightSize : height);
+        setMeasuredDimension(
+                widthSpecMode == MeasureSpec.EXACTLY ? widthSpecSize : width + getPaddingLeft() + getPaddingRight(),
+                heightSpecMode == MeasureSpec.EXACTLY ? heightSpecSize : height + getPaddingTop() + getPaddingBottom()
+        );
     }
 
     @Override
@@ -308,7 +336,6 @@ public class TagGroup extends ViewGroup {
         final int parentLeft = getPaddingLeft();
         final int parentRight = r - l - getPaddingRight();
         final int parentTop = getPaddingTop();
-        final int parentBottom = b - t - getPaddingBottom();
 
         int childLeft = parentLeft;
         int childTop = parentTop;
@@ -335,40 +362,19 @@ public class TagGroup extends ViewGroup {
         }
     }
 
-    @Override
-    protected Parcelable onSaveInstanceState() {
-        Parcelable superState = super.onSaveInstanceState();
-        SavedState ss = new SavedState(superState);
-        ss.tags = getTagsByArray();
-        if (getInputTag() != null) {
-            ss.input = getInputTag().getText().toString();
-        }
-        return ss;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        if (!(state instanceof  SavedState)) {
-            super.onRestoreInstanceState(state);
-            return;
-        }
-
-        SavedState ss = (SavedState) state;
-        super.onRestoreInstanceState(ss.getSuperState());
-        setTags(ss.tags);
-        TagView checkedTagView = getTagAt(ss.checkedPosition);
-        if (checkedTagView != null)
-            checkedTagView.setChecked(true);
-        if (getInputTag() != null) {
-            getInputTag().setText(ss.input);
+    public void appendInputTag() {
+        try {
+            T t = getInstanceOfT();
+            appendInputTag(t);
+            Log.e(TAG, "exec append");
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 
-    protected void appendInputTag() {
-        appendInputTag(null);
-    }
-
-    protected void appendInputTag(String tag) {
+    protected void appendInputTag(T tag) {
 
         final TagView previousInputTag = getInputTag();
         if (previousInputTag != null) {
@@ -379,10 +385,10 @@ public class TagGroup extends ViewGroup {
         newInputTag.setOnClickListener(mInternalTagClickListener);
         if (checkShowInputTag())
             addView(newInputTag); // 添加view 自动重绘
-
         // scrollview 自动滚动到底部
         if (getParent() instanceof TagScrollView) {
             TagScrollView scrollView = (TagScrollView) getParent();
+            scrollView.requestLayout();
             if (mScrollBottomRunnable != null)
                 scrollView.post(mScrollBottomRunnable);
         }
@@ -391,10 +397,9 @@ public class TagGroup extends ViewGroup {
     private boolean checkShowInputTag() {
         if (maxCount != -1) {
             if (getChildCount() > maxCount) {
-                // TODO: 16/12/19 隐藏软键盘
-                Activity activity = (Activity) getContext();
-                ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE))
-                        .hideSoftInputFromWindow(getLastNormalTagView().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//                Activity activity = (Activity) getContext();
+//                ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE))
+//                        .hideSoftInputFromWindow(getLastNormalTagView().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 return false;
             } else {
                 return true;
@@ -404,45 +409,60 @@ public class TagGroup extends ViewGroup {
 
     }
 
-    public List<String> getTags() {
+    public List<T> getTags() {
         final int count = getChildCount();
-        final List<String> tagList = new ArrayList<>();
+        final List<T> tagList = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             final TagView tagView = getTagAt(i);
             if (tagView.mState == TagView.STATE_NORMAL) {
-                tagList.add(tagView.getText().toString());
+                tagList.add((T) tagView.getTagObj());
             }
         }
         return tagList;
     }
 
-    public String[] getTagsByArray() {
-        List<String> tags = getTags();
-        return tags.toArray(new String[tags.size()]);
+    public T[] getTagsByArray() {
+        List<T> tags = getTags();
+        return getInstanceArrayOfT(tags.size());
+//        return tags.toArray(new String[tags.size()]);
     }
 
-    public void setTags(List<String> tagList) {
+    public void setTags(List<T> tagList) {
         setTags(true, tagList);
     }
 
-    public void setTags(String ... tags) {
-        setTags(true, tags);
+    public void setTags(T... tags) {
+        setTags(true, true, tags);
     }
 
-    public void setTags(boolean needRemoveAll, List<String> tagList) {
-        setTags(needRemoveAll, tagList.toArray(new String[tagList.size()]));
+    public void setTags(boolean needRemoveAll, List<T> tagList) {
+        setTags(needRemoveAll,true, tagList.toArray(getInstanceArrayOfT(tagList.size())));
     }
 
-    public void setTags(boolean needRemoveAll, String ... tags) {
+    /**
+     *
+     * @param needRemoveAll
+     * @param needAppendInput
+     * @param tags
+     */
+    public void setTags(boolean needRemoveAll, boolean needAppendInput, T... tags) {
         if (needRemoveAll)
             removeAllViews();
-        else
-            removeView(getInputTag());
-        for (final String tag : tags) {
+        else {
+            // 删除输入框
+            removeView(getChildAt(getChildCount() - 1));
+        }
+        for (final T tag : tags) {
             appendTag(tag);
         }
-        appendInputTag();
+        if (needAppendInput)
+            appendInputTag();
+    }
 
+    public void setStringTag(T tag) {
+        List<T> tags = getTags();
+        tags.add(tag);
+        setTags(tags);
     }
 
     /**
@@ -492,7 +512,15 @@ public class TagGroup extends ViewGroup {
     public void deleteTag(TagView tagView) {
         removeView(tagView);
         if (mOnTagChangeListener != null) {
-            mOnTagChangeListener.onDelete(TagGroup.this, tagView.getText().toString());
+            mOnTagChangeListener.onDelete(TagGroup.this, tagView.getTagObj());
+        }
+    }
+
+    public void deleteTag(String tagString) {
+        for (int i = 0; i < getTags().size(); i++) {
+            if (tagString.equals(getTags().get(i))) {
+                deleteTag(((TagView) getChildAt(i)));
+            }
         }
     }
 
@@ -511,7 +539,7 @@ public class TagGroup extends ViewGroup {
         mOnTagChangeListener = l;
     }
 
-    protected void appendTag(CharSequence tag) {
+    protected void appendTag(T tag) {
         final TagView newTag = new TagView(getContext(), TagView.STATE_NORMAL, tag);
         newTag.setOnClickListener(mInternalTagClickListener);
         addView(newTag);
@@ -541,50 +569,6 @@ public class TagGroup extends ViewGroup {
         }
     }
 
-    static class SavedState extends BaseSavedState {
-
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
-
-                    @Override
-                    public SavedState createFromParcel(Parcel source) {
-                        return new SavedState(source);
-                    }
-
-                    @Override
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                };
-
-        int tagCount;
-        String[] tags;
-        int checkedPosition;
-        String input;
-
-        public SavedState(Parcel source) {
-            super(source);
-            tagCount = source.readInt();
-            tags = new String[tagCount];
-            source.readStringArray(tags);
-            checkedPosition = source.readInt();
-            input = source.readString();
-        }
-
-        public SavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            tagCount = tags.length;
-            out.writeInt(tagCount);
-            out.writeStringArray(tags);
-            out.writeInt(checkedPosition);
-            out.writeString(input);
-        }
-    }
 
     /**
      * 中间件 内部进行样式处理后向外部回调onTagClick事件
@@ -607,23 +591,20 @@ public class TagGroup extends ViewGroup {
                 boolean check = !tag.isChecked;
                 tag.setChecked(check);
                 if (mOnTagClickListener != null) {
-                    mOnTagClickListener.onTagClick(tag, tag.getText().toString(), !check);
+                    mOnTagClickListener.onTagClick(tag, tag.getTagObj(), !check);
                 }
             }
         }
     }
 
 
-    public interface OnTagChangeListener {
-        void onAppend(TagGroup tagGroup, String tag);
-        void onDelete(TagGroup tagGroup, String tag);
-    }
+    public class TagView<T extends TagAble> extends TextView {
 
-    public interface OnTagClickListener {
-        void onTagClick(TagView tagView, String tag, boolean isChecked);
-    }
+        public T tagObj;
 
-    public class TagView extends TextView {
+        public T getTagObj() {
+            return tagObj;
+        }
 
         public static final int STATE_NORMAL = 1;
         public static final int STATE_INPUT  = 2;
@@ -638,7 +619,6 @@ public class TagGroup extends ViewGroup {
         private RectF mHorizontalBlankFillRectF = new RectF();
         private RectF mVerticalBlankFillRectF = new RectF();
 
-        private Rect mOutRect = new Rect();
         private Path mBorderPath = new Path();
 
         {
@@ -648,16 +628,18 @@ public class TagGroup extends ViewGroup {
         }
 
 
-        public TagView(Context context, final  int state, CharSequence text) {
+        public TagView(Context context, final  int state, T tag) {
             super(context);
+            tagObj = tag;
             setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
             setLayoutParams(new TagGroup.LayoutParams(
                     LayoutParams.WRAP_CONTENT,
                     LayoutParams.WRAP_CONTENT
             ));
-
             setGravity(Gravity.CENTER);
-            setText(text);
+            if (tag != null)
+                setText(tag.getName());
+            setMaxEms(maxEms);
             setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
 
             mState = state;
@@ -685,10 +667,28 @@ public class TagGroup extends ViewGroup {
                         if (actionId == EditorInfo.IME_NULL
                                 && (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                                 && event.getAction() == KeyEvent.ACTION_DOWN)) {
+
+                            if (!StringUtil.checkLabelFormat(getText().toString().trim())) {
+                                Toast.makeText(getContext(), "请输入中英文或数字", Toast.LENGTH_SHORT).show();
+                                return true;
+                            }
+
+                            // 检查去重
+                            String text = getText().toString().trim();
+                            List<T> tags = (List<T>) getTags();
+                            for (int i = 0; i < tags.size(); i++) {
+                                if (text.equals(tags.get(i).getName())) {
+                                    setText(null);
+                                    return true;
+                                }
+                            }
+
                             if (isInputAvailable()) {
+                                tagObj.setName(text);
+                                setText(getText().toString().trim());
                                 endInput();
                                 if (mOnTagChangeListener != null) {
-                                    mOnTagChangeListener.onAppend(TagGroup.this, getText().toString().trim());
+                                    mOnTagChangeListener.onAppend(TagGroup.this, tagObj);
                                 }
                                 appendInputTag();
                             }
@@ -716,7 +716,7 @@ public class TagGroup extends ViewGroup {
                                         scrollView.post(mScrollBottomRunnable);
                                     }
                                     if (mOnTagChangeListener != null) {
-                                        mOnTagChangeListener.onDelete(TagGroup.this, lastNormalTagView.getText().toString());
+                                        mOnTagChangeListener.onDelete(TagGroup.this, lastNormalTagView.getTagObj());
                                     }
                                 } else {
                                     final TagView checkedTagView = getCheckedTag();
@@ -731,20 +731,6 @@ public class TagGroup extends ViewGroup {
                         return false;
                     }
                 });
-
-//                /**
-//                 * 判断edittext是否失去焦点 如果失去焦点 则把输入框改变成标签
-//                 */
-//                setOnFocusChangeListener(new OnFocusChangeListener() {
-//                    @Override
-//                    public void onFocusChange(View v, boolean hasFocus) {
-//                        if (!hasFocus) {
-//                            if (isInputAvailable()) {
-//                                endInput();
-//                            }
-//                        }
-//                    }
-//                });
 
                 addTextChangedListener(new TextWatcher() {
                     @Override
@@ -865,29 +851,6 @@ public class TagGroup extends ViewGroup {
             if (mState == STATE_INPUT) {
                 return super.onTouchEvent(event);
             }
-
-//            switch (event.getAction()) {
-//                case MotionEvent.ACTION_DOWN: {
-//                    getDrawingRect(mOutRect);
-//                    isPressed = true;
-//                    invalidatePaint();
-//                    break;
-//                }
-//                case MotionEvent.ACTION_MOVE: {
-//                    if (!mOutRect.contains((int) event.getX(), (int) event.getY())) {
-//                        isPressed = false;
-//                        invalidatePaint();
-////                        postInvalidate();
-//                    }
-//                    break;
-//                }
-//                case MotionEvent.ACTION_UP: {
-//                    isPressed = false;
-//                    invalidatePaint();
-//                    postInvalidate();
-//                    break;
-//                }
-//            }
             return super.onTouchEvent(event);
         }
 
@@ -896,10 +859,6 @@ public class TagGroup extends ViewGroup {
             return new ZanyInputConnection(super.onCreateInputConnection(outAttrs), true);
         }
 
-        /**
-         * Solve edit text delete(backspace) key detect, see<a href="http://stackoverflow.com/a/14561345/3790554">
-         * Android: Backspace in WebView/BaseInputConnection</a>
-         */
         private class ZanyInputConnection extends InputConnectionWrapper {
             public ZanyInputConnection(android.view.inputmethod.InputConnection target, boolean mutable) {
                 super(target, mutable);
@@ -918,7 +877,10 @@ public class TagGroup extends ViewGroup {
         }
     }
 
-    private  Runnable mScrollBottomRunnable = new Runnable() {
+    /**
+     * 如果父容器为TagScrollView 超过maxLines后自动滚动到底部
+     */
+    private Runnable mScrollBottomRunnable = new Runnable() {
         @Override
         public void run() {
             if (getParent() instanceof TagScrollView) {
