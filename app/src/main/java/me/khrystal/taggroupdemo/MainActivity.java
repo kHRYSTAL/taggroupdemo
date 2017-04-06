@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements OnTagClickListene
             list.add(bean);
         }
         mTagGroup.setTags(list);
+        if (mTagGroup.getInputTag() == null)
+            mTagGroup.appendInputTag();
     }
 
 
